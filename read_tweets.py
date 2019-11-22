@@ -59,15 +59,15 @@ for file_idx, file_name in enumerate(file_lst):
 				    cursor.execute('''
                 	    INSERT INTO USERS (id, verified, followers_count)
                 		    VALUES
-                			    (?,?,?)
-                    ''', (userID, verified, followers_count))
+                			    (?,?,?,?,?)
+                    ''', (userID, screen_name, name, verified, followers_count))
 				    conn.commit()
 				# insert tweet object
 				cursor.execute('''
 					INSERT INTO TWEETS (id, tweet_text, "user", favorite_count, search_id)
 						VALUES
-							(?,?,?,?,?)
-				''', (tweet_id, tweet_text, userID, favorite_count, searchID))
+							(?,?,?,?,?,?,?,?,?)
+				''', (tweet_id, user_id, , tweet_text, userID, favorite_count, searchID))
 				conn.commit()
 				# insert hashtags
 				for hashtag in hashtag_objects:
