@@ -7,11 +7,13 @@ import sys
 import glob
 import pyodbc
 
-server = 'localhost'
+server = 'ROTREVIN-MX'
 database = 'TwitterProject'
-username = 'sa'
-password = 'reallyStrongPwd123'
-driver='{ODBC Driver 17 for SQL Server}'
+driver = '{SQL Server}'
+conn =
+pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';TRUSTED_CONNECTION=yes')
+
+
 
 conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1443;DATABASE='+database+';UID='+username+';PWD='+password)
 cursor = conn.cursor()

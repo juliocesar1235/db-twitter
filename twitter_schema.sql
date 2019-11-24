@@ -26,6 +26,7 @@ DROP TABLE REPLY;
 CREATE TABLE RESEARCHERS (
     id    INT,
     full_name  VARCHAR(60) NOT NULL,
+    studentId VARCHAR(9),
     profile    TEXT,
     twitterHandle varchar(60),
     PRIMARY KEY(id)
@@ -34,8 +35,9 @@ CREATE TABLE RESEARCHERS (
 /* INSERT INTO RESEARCHERS VALUES (1, 'Roberto Alejandro Treviño Lozano',
                   'Databases Teacher at Tec'); */
 
-Insert Into Researchers VALUES (1,'Luis Fernando Lomelín Ibarra','DB Student @ ITESM','@LuisLomelín');
-
+Insert Into Researchers VALUES (1,'Luis Fernando Lomelín Ibarra','A01177015','DB Student @ ITESM','@IbarraLomelin');
+insert into Researchers VALUES (2,'Arturo Manrique Garza','a01282767' ,'Alumno de ITC 5to semestre', '@ArturoManrique_');
+insert into Researchers VALUES (3,'Julio César Gutiérrez Briones','A01282575' ,'Estudiante y Desarrollador de software', '@JulioA01282575');
 CREATE TABLE REQUEST (
     id            INT,
     description   TEXT,
@@ -55,19 +57,26 @@ CREATE TABLE USERS (
     PRIMARY KEY(id)
 );
 
+CREATE TABLE PLACE (
+	id				BIGINT,
+    name			TEXT,
+    granularity		TEXT,
+    latitude		BIGINT,
+    longitude		BIGINT,
+    PRIMARY KEY(id)
+
+);
 
 CREATE TABLE TWEETS (
     id                BIGINT,
     userId          BIGINT,
     RequestId         INT,
-    "text"            TEXT,
+    text            TEXT,
     retweetedNum      BIGINT,
     favoritedNum      BIGINT,
-    "language"        varchar(10),
+    language        varchar(10),
     DOP               text,
-    locationId        bigint
-    
-    
+    locationId        bigint,
     PRIMARY KEY(id),
     FOREIGN KEY(userId) references USERS(id),
     FOREIGN KEY(RequestId) references REQUEST(id),
@@ -75,29 +84,26 @@ CREATE TABLE TWEETS (
 );
 
 CREATE TABLE MEDIA(
-    "url" text,
+    url TEXT(20),
     tweetid bigint,
-    PRIMARY KEY ("url"),
-    PRIMARY KEY (tweetid),
+    PRIMARY KEY (url(20), tweetid),
     FOREIGN KEY (tweetid) REFERENCES TWEETS(id)
 );
 
 CREATE TABLE USER_MENTION(
     tweetID BIGINT,
     mentionedUser varchar(100),
-    PRIMARY KEY(tweetID),
-    PRIMARY KEY(mentionedUser),
-    FOREIGN KEY(tweetID) REFERENCES TWWETS(id)
+    PRIMARY KEY(tweetID,mentionedUser),
+    FOREIGN KEY(tweetID) REFERENCES TWEETS(id)
 
 );
 
 CREATE TABLE REPLY(
     tweetID BIGINT,
     userID BIGINT,
-    "text" text,
-    PRIMARY KEY(tweetID),
-    PRIMARY KEY(userID),
-    FOREIGN KEY(tweetID) REFERENCES TWWETS(id),
+    text text,
+    PRIMARY KEY(tweetID, userId),
+    FOREIGN KEY(tweetID) REFERENCES TWEETS(id),
     FOREIGN KEY(userID) REFERENCES USERS(id)
 );
 
@@ -105,5 +111,5 @@ CREATE TABLE HASHTAGS (
     tweet_id    BIGINT,
     hashtag     VARCHAR(280),
     PRIMARY KEY(tweet_id, hashtag),
-    FOREIGN KEY(tweet_id) references TWEETS(id),
+    FOREIGN KEY(tweet_id) references TWEETS(id)
 );
