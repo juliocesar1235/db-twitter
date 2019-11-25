@@ -22,7 +22,6 @@ DROP TABLE PLACE;
 DROP TABLE MEDIA;
 DROP TABLE USER_MENTION;
 DROP TABLE REPLY;
-
 CREATE TABLE RESEARCHERS (
     id    INT,
     full_name  VARCHAR(60) NOT NULL,
@@ -84,9 +83,9 @@ CREATE TABLE TWEETS (
 );
 
 CREATE TABLE MEDIA(
-    url TEXT(20),
+    url varchar(255),
     tweetid bigint,
-    PRIMARY KEY (url(20), tweetid),
+    PRIMARY KEY (url, tweetid),
     FOREIGN KEY (tweetid) REFERENCES TWEETS(id)
 );
 
