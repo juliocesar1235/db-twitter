@@ -31,6 +31,7 @@ file_lst = glob.glob(file_str)
 # process every file
 for file_idx, file_name in enumerate(file_lst):
     counter = 0
+    placeCount = 0
     with open(file_name, 'r') as f:
         for line in f:
             if counter == 0:
@@ -62,15 +63,14 @@ for file_idx, file_name in enumerate(file_lst):
 				# read hashtag information [indices, text]
 				# Place info
                 print(tweet['coordinates'])
-                latitude=float(tweet['coordinates'][1])
-                longitude=float(tweet['coordinates'][2])
-                granulaty=tweet['place']['country']+" "+ tweet['place']['full_name']
 				# end of place info
+                userMentions_obj= tweet['entities']['user_mentions']
 				# Media info
-                url=tweet['entities']['media']['display_url']
+                #media_obj=tweet['entities']['media']
 				# end of media info
                 hashtag_objects = tweet['entities']['hashtags']
 				# insert only if the user doesn't exists already in the database
+                print(userID)
                 rows = cursor.execute('SELECT * FROM USERS WHERE id = ?', userID).fetchall()
                 if len(rows) == 0:
                     cursor.execute('''
@@ -96,6 +96,36 @@ for file_idx, file_name in enumerate(file_lst):
                             INSERT INTO HASHTAGS (tweet_id, hashtag)
                                 VALUES(?,?)
                         ''', (tweet_id, hashtag['text']))
+                        conn.commit()
+                # insert places
+                if tweet['coordinates'] != 'none':
+                    latitude = float(tweet['coordinates'][1])
+                    longitude = float(tweet['coordinates'][2])
+                    placeCount = placeCount + 1 
+                    granularity = ''
+                    name=tweet['place']['country']+" "+ tweet['place']['full_name']
+                    rows = cursor.execute('''SELECT * FROM PLACE WHERE 
+                        name = ?''', (name)).fetchall()
+                    if len(rows) == 0:
+                        cursor.execute('''
+                            INSERT INTO PLACE (id,name,granularity,latitude,longitude)
+                                VALUES(?,?,?,?,?)
+                        ''', (placeCount, name, granularity, latitude, longitude ))
+                        conn.commit()
+                for media in media_obj:
+                    rows = cursor.execute(''' SELECT * FROM MEDIA WHERE url = ? and tweetid = ?''',(media['display_url'],tweet_id)).fetchcall()
+                    if len(rows) == 0:
+                        cursor.execute(''' INSERT INTO MEDIA (url,tweetid) VALUES(?,?)''',(media['display_url'],tweet_id))
+                        conn.commit()
+                for mention in userMentions_obj:
+                    rows = cursor.execute(''' SELECT * FROM USER_MENTION WHERE mentionedUser = ? and tweetid = ?''',(mention['screen_name'],tweet_id)).fetchcall()
+                    if len(rows) == 0:
+                        cursor.execute(''' INSERT INTO USER_MENTION (mentionedUser,tweetid) VALUES(?,?)''',(mention['screen_name'],tweet_id))
+                        conn.commit()
+                if tweet['in_reply_to_status_id'] != null:
+                    rows = cursor.execute(''' SELECT * FROM REPLY WHERE userId = ? and tweetid = ?''',(tweet['user']['id'],tweet['in_reply_to_status_id'])).fetchcall()
+                    if len(rows) == 0:
+                        cursor.execute(''' INSERT INTO REPLY (userId,tweetid) VALUES(?,?)''',(tweet['user']['id'],tweet['in_reply_to_status_id']))
                         conn.commit()
 cursor.close()
 conn.close()
