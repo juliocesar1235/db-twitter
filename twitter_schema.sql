@@ -57,7 +57,7 @@ CREATE TABLE USERS (
 );
 
 CREATE TABLE PLACE (
-	id				BIGINT,
+	id				BIGINT auto_increment,
     name			TEXT,
     granularity		TEXT,
     latitude		BIGINT,
@@ -65,6 +65,7 @@ CREATE TABLE PLACE (
     PRIMARY KEY(id)
 
 );
+alter table reply auto_increment=0;
 
 CREATE TABLE TWEETS (
     id                BIGINT,
@@ -95,15 +96,6 @@ CREATE TABLE USER_MENTION(
     PRIMARY KEY(tweetID,mentionedUser),
     FOREIGN KEY(tweetID) REFERENCES TWEETS(id)
 
-);
-
-CREATE TABLE REPLY(
-    tweetID BIGINT,
-    userID BIGINT,
-    text text,
-    PRIMARY KEY(tweetID, userId),
-    FOREIGN KEY(tweetID) REFERENCES TWEETS(id),
-    FOREIGN KEY(userID) REFERENCES USERS(id)
 );
 
 CREATE TABLE HASHTAGS (

@@ -29,9 +29,9 @@ file_str = r'bdatweets_*.json'
 file_lst = glob.glob(file_str)
 
 # process every file
+placeCount = 0
 for file_idx, file_name in enumerate(file_lst):
     counter = 0
-    placeCount = 0
     with open(file_name, 'r') as f:
         for line in f:
             if counter == 0:
@@ -47,6 +47,8 @@ for file_idx, file_name in enumerate(file_lst):
             if line != '\n':
 				# each line is a tweet json object, load it and display user id
                 tweet = json.loads(line)
+                print('tweet start'+tweet['id_str'])
+                print(placeCount)
 				# user info
                 userID = int(tweet['user']['id'])
                 verified = tweet['user']['verified']
@@ -63,16 +65,20 @@ for file_idx, file_name in enumerate(file_lst):
                 placeId=None;
 				# read hashtag information [indices, text]
 				# Place info
-                print(tweet['coordinates']['type'])
+                #print(tweet['coordinates'])
                 if tweet['coordinates'] != None:
-                    latitude = float(tweet['coordinates']['cooridinates'][0])
-                    longitude = float(tweet['coordinates']['cooridinates'][1])
+                    print(tweet['coordinates']['coordinates'])
+                    latitude = float(tweet['coordinates']['coordinates'][0])
+                    longitude = float(tweet['coordinates']['coordinates'][1])
                     granularity = tweet['coordinates']['type']
-                    name=tweet['place']['country']+" "+ tweet['place']['full_name']
-                    rows = cursor.execute('''SELECT * FROM PLACE WHERE 
-                        latitude = %s and longitude= %s''', (latitude,longitude,)).fetchall()
+                    name=tweet['place']['full_name']+" , "+tweet['place']['country']
+                    cursor.execute('''SELECT * FROM PLACE WHERE 
+                        latitude = %s and longitude= %s''', (latitude,longitude,))
+                    rows = cursor.fetchall()
+                    print(rows)
                     if len(rows) == 0:
-                        placeCount = placeCount + 1 
+                        placeCount += 1
+                        print(placeCount) 
                         cursor.execute('''
                             INSERT INTO PLACE (id,name,granularity,latitude,longitude)
                                 VALUES(%s,%s,%s,%s,%s)
@@ -85,7 +91,7 @@ for file_idx, file_name in enumerate(file_lst):
 				# end of media info
                 hashtag_objects = tweet['entities']['hashtags']
 				# insert only if the user doesn't exists already in the database
-                print(userID)
+                #print(userID)
                 statement=('SELECT * FROM USERS WHERE id = %s')
                 value=(userID,)
                 cursor.execute(statement, value)
@@ -102,7 +108,8 @@ for file_idx, file_name in enumerate(file_lst):
                 value=(tweet_id,)
                 cursor.execute(statement, value)
                 rows= cursor.fetchall()
-                if len(row) == 0:
+                print(rows)
+                if len(rows)==0:
                     cursor.execute('''
                         INSERT INTO TWEETS (id, userId, requestId, text, retweetedNum, favoritedNum, language, DOP, locationId)
                             VALUES
@@ -110,39 +117,34 @@ for file_idx, file_name in enumerate(file_lst):
                     ''', (tweet_id, userID,  None, tweet_text,retweetNum,favorite_count, lang, dayOfp, placeId,))
                     conn.commit()
                     # insert hashtags
-                    for hashtag in hashtag_objects:
-                        # insert only unique hashtags
-                        statement=("SELECT * FROM HASHTAGS WHERE tweet_id = %s AND"
-                            "hashtag = %s")
-                        value= (tweet_id, hashtag['text'],)
-                        cursor.execute(statement,value)
+                for hashtag in hashtag_objects:
+                    # insert only unique hashtags
+                    statement=("SELECT * FROM HASHTAGS WHERE tweet_id = %s AND "
+                        "hashtag = %s")
+                    value= (tweet_id, hashtag['text'],)
+                    cursor.execute(statement,value)
+                    rows = cursor.fetchall()
+                    if len(rows) == 0:
+                        cursor.execute('''
+                            INSERT INTO HASHTAGS (tweet_id, hashtag)
+                                VALUES(%s,%s)
+                        ''', (tweet_id, hashtag['text'],))
+                        conn.commit()
+                # insert places
+                if 'media' in tweet['entities']:
+                    media_obj=tweet['entities']['media']
+                    for media in media_obj:
+                        cursor.execute(''' SELECT * FROM MEDIA WHERE url = %s and tweetid = %s''',(media['display_url'],tweet_id,))
                         rows = cursor.fetchall()
                         if len(rows) == 0:
-                            cursor.execute('''
-                                INSERT INTO HASHTAGS (tweet_id, hashtag)
-                                    VALUES(%s,%s)
-                            ''', (tweet_id, hashtag['text'],))
+                            cursor.execute(''' INSERT INTO MEDIA (url,tweetid) VALUES(%s,%s)''',(media['display_url'],tweet_id,))
                             conn.commit()
-                    # insert places
-                    if 'media' in tweet['entities']:
-                        media_obj=tweet['entities']['media']
-                        for media in media_obj:
-                            cursor.execute(''' SELECT * FROM MEDIA WHERE url = %s and tweetid = %s''',(media['display_url'],tweet_id,))
-                            rows = cursor.fetchcall()
-                            if len(rows) == 0:
-                                cursor.execute(''' INSERT INTO MEDIA (url,tweetid) VALUES(%s,%s)''',(media['display_url'],tweet_id,))
-                                conn.commit()
-                    for mention in userMentions_obj:
-                        cursor.execute(''' SELECT * FROM USER_MENTION WHERE mentionedUser = %s and tweetid = %s''',(mention['screen_name'],tweet_id,))
-                        rows = cursor.fetchcall()
-                        if len(rows) == 0:
-                            cursor.execute(''' INSERT INTO USER_MENTION (mentionedUser,tweetid) VALUES(%s,%s)''',(mention['screen_name'],tweet_id,))
-                            conn.commit()
-                    if tweet['in_reply_to_status_id'] != null:
-                        cursor.execute(''' SELECT * FROM REPLY WHERE userId = %s and tweetid = %s''',(tweet['user']['id'],tweet['in_reply_to_status_id'],))
-                        rows = cursor.fetchcall()
-                        if len(rows) == 0:
-                            cursor.execute(''' INSERT INTO REPLY (userId,tweetid) VALUES(%s,%s)''',(tweet['user']['id'],tweet['in_reply_to_status_id'],))
-                            conn.commit()
+                for mention in userMentions_obj:
+                    cursor.execute(''' SELECT * FROM USER_MENTION WHERE mentionedUser = %s and tweetid = %s''',(mention['screen_name'],tweet_id,))
+                    rows = cursor.fetchall()
+                    if len(rows) == 0:
+                        cursor.execute(''' INSERT INTO USER_MENTION (mentionedUser,tweetid) VALUES(%s,%s)''',(mention['screen_name'],tweet_id,))
+                        conn.commit()
+                print('tweet finished')
 cursor.close()
 conn.close()
