@@ -47,8 +47,8 @@ for file_idx, file_name in enumerate(file_lst):
             if line != '\n':
 				# each line is a tweet json object, load it and display user id
                 tweet = json.loads(line)
-                print('tweet start'+tweet['id_str'])
-                print(placeCount)
+                print('tweet start'+" "+tweet['id_str']+" ReserchID: "+str(searchID))
+                #print(placeCount)
 				# user info
                 userID = int(tweet['user']['id'])
                 verified = tweet['user']['verified']
@@ -59,6 +59,7 @@ for file_idx, file_name in enumerate(file_lst):
                 tweet_id = tweet['id']
                 tweet_text = tweet['text']
                 favorite_count = int(tweet['favorite_count'])
+                print('rt count: '+str(tweet['retweet_count']))
                 retweetNum= int(tweet['retweet_count'])
                 lang=tweet['lang']
                 dayOfp=tweet['created_at']
@@ -80,9 +81,9 @@ for file_idx, file_name in enumerate(file_lst):
                         placeCount += 1
                         print(placeCount) 
                         cursor.execute('''
-                            INSERT INTO PLACE (id,name,granularity,latitude,longitude)
-                                VALUES(%s,%s,%s,%s,%s)
-                        ''', (placeCount, name, granularity, latitude, longitude, ))
+                            INSERT INTO PLACE (name,granularity,latitude,longitude)
+                                VALUES(%s,%s,%s,%s)
+                        ''', ( name, granularity, latitude, longitude, ))
                         placeId=placeCount
 				# end of place info
                 userMentions_obj= tweet['entities']['user_mentions']
@@ -108,13 +109,13 @@ for file_idx, file_name in enumerate(file_lst):
                 value=(tweet_id,)
                 cursor.execute(statement, value)
                 rows= cursor.fetchall()
-                print(rows)
+                #print(rows)
                 if len(rows)==0:
                     cursor.execute('''
                         INSERT INTO TWEETS (id, userId, requestId, text, retweetedNum, favoritedNum, language, DOP, locationId)
                             VALUES
                                 (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ''', (tweet_id, userID,  None, tweet_text,retweetNum,favorite_count, lang, dayOfp, placeId,))
+                    ''', (tweet_id, userID, searchID, tweet_text,retweetNum,favorite_count, lang, dayOfp, placeId,))
                     conn.commit()
                     # insert hashtags
                 for hashtag in hashtag_objects:
