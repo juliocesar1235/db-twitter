@@ -60,12 +60,12 @@ CREATE TABLE PLACE (
 	id				BIGINT auto_increment,
     name			TEXT,
     granularity		TEXT,
-    latitude		BIGINT,
-    longitude		BIGINT,
+    latitude		float,
+    longitude		float,
     PRIMARY KEY(id)
 
 );
-alter table reply auto_increment=0;
+alter table place auto_increment=0;
 
 CREATE TABLE TWEETS (
     id                BIGINT,
