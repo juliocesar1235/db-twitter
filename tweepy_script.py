@@ -16,7 +16,7 @@ class MyStreamListener(tweepy.StreamListener):
         self.api = api or API()
         self.counter = 0
         self.researcherID = "1";
-        self.searchID = "1";
+        self.searchID = "2";
         # define the filename with time as prefix
         self.output = open('bdatweets_%s.json'
                         % (time.strftime('%Y%m%d-%H%M%S')), 'a')
@@ -26,7 +26,7 @@ class MyStreamListener(tweepy.StreamListener):
         self.counter += 1
         json.dump(status._json, self.output)
         self.output.write('\n')
-        if self.counter >= 10:
+        if self.counter >= 100:
             self.output.close()
             self.output = open('bdatweets_%s.json'
                                 % (time.strftime('%Y%m%d-%H%M%S')), 'a')
@@ -51,4 +51,5 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 myStream = tweepy.Stream(auth=api.auth, listener=MyStreamListener(api))
 print('Reading Twitter Stream...')
-myStream.filter(track=['Microsoft','Apple'], languages=["es"])
+#,'Pokémon Sword','Pokémon Shield','Pokémon Sword and Shield','Drake Bell','Game Freak','Buen Fin','Champions League'
+myStream.filter(track=['Pokémon Sword','Pokémon Shield','Pokémon Sword and Shield'], languages=["es","en"])
